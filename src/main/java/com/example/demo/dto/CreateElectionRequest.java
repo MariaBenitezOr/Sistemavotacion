@@ -1,15 +1,21 @@
 package com.example.demo.dto;
 
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import java.time.LocalDateTime;
 
 public class CreateElectionRequest {
 
+    @NotBlank(message = "El título es obligatorio")
     private String title;
 
+    @NotBlank(message = "La descripción es obligatoria")
     private String description;
 
+    @NotNull(message = "La fecha de inicio es obligatoria")
     private LocalDateTime startDate;
 
+    @NotNull(message = "La fecha de fin es obligatoria")
     private LocalDateTime endDate;
 
     public String getTitle() {
