@@ -5,14 +5,13 @@ import org.springframework.web.bind.annotation.*;
 import com.example.demo.service.ElectionService;
 import com.example.demo.dto.CreateElectionListRequest;
 import java.util.List;
-import com.example.demo.entity.Election;
 import com.example.demo.dto.ElectionListResponse;
 import com.example.demo.dto.CreateCandidateRequest;
+import com.example.demo.dto.CreateObservationRequest;
 import com.example.demo.dto.CandidateResponse;
 import com.example.demo.dto.ElectionResultResponse;
 import com.example.demo.dto.ElectionStatsResponse;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 
@@ -30,8 +29,11 @@ public class ElectionController {
     //creamosEleccion
     @PreAuthorize("hasRole('ADMIN')")
     @PostMapping
-    public ElectionResponse createElection(@Valid @RequestBody CreateElectionRequest request) {
-        return electionService.createElection(request);
+    public ElectionResponse createElection(@Valid @RequestBody CreateElectionRequest request,
+                                           @AuthenticationPrincipal Jwt jwt) {
+
+        String actor = jwt.getClaimAsString("email");
+        return electionService.createElection(request,actor);
     }
 
     //listarElecciones
@@ -47,7 +49,7 @@ public class ElectionController {
     public ElectionResponse getElectionById(@PathVariable Long id,
                                             @AuthenticationPrincipal Jwt jwt) {
 
-       // String actor = jwt.getClaimAsString("email");
+
         return electionService.getElectionById(id);
     }
 
@@ -85,7 +87,7 @@ public class ElectionController {
     @PreAuthorize("hasRole('ADMIN')")
     @PostMapping("/{id}/positions")
     public String addPosition(@PathVariable Long id,
-                              @RequestBody CreatePositionRequest request,
+                              @Valid @RequestBody CreatePositionRequest request,
                               @AuthenticationPrincipal Jwt jwt) {
 
         String actor = jwt.getClaimAsString("email");
@@ -103,7 +105,7 @@ public class ElectionController {
     @PreAuthorize("hasRole('ADMIN')")
     @PostMapping("/{id}/lists")
     public String registerList(@PathVariable Long id,
-                               @RequestBody CreateElectionListRequest request,
+                               @Valid @RequestBody CreateElectionListRequest request,
                                @AuthenticationPrincipal Jwt jwt) {
 
         String actor = jwt.getClaimAsString("email");
@@ -122,7 +124,7 @@ public class ElectionController {
     @PostMapping("/{electionId}/lists/{listId}/candidates")
     public String addCandidate (@PathVariable Long electionId,
                                 @PathVariable Long listId,
-                                @RequestBody CreateCandidateRequest request,
+                                @Valid @RequestBody CreateCandidateRequest request,
                                 @AuthenticationPrincipal Jwt jwt){
 
         String actor = jwt.getClaimAsString("email");
@@ -141,7 +143,7 @@ public class ElectionController {
     @PreAuthorize("hasRole('VOTER')")
     @PostMapping("/{id}/vote")
     public String vote(@PathVariable Long id,
-                       @RequestBody CreateVoteRequest request,
+                       @Valid @RequestBody CreateVoteRequest request,
                        @AuthenticationPrincipal Jwt jwt) {
 
         String voterCode = jwt.getClaimAsString("email");
@@ -173,6 +175,7 @@ public class ElectionController {
         return electionService.getElectionStats(id);
     }
 
+
     //reporte
     @PreAuthorize("hasAnyRole('ADMIN','AUDITOR')")
     @GetMapping("/{id}/report")
@@ -186,5 +189,18 @@ public class ElectionController {
     public String exportElectionAudit(@PathVariable Long id) {
         return electionService.exportElectionAudit(id);
     }
+
+
+    //Prueba
+    @PreAuthorize("hasRole('AUDITOR')")
+    @PostMapping ("/{id}/observations")
+    public ObservationResponse electionObservations (@PathVariable Long id ,
+                                        @Valid @RequestBody CreateObservationRequest request,
+                                        @AuthenticationPrincipal Jwt jwt){
+
+        String actor = jwt.getClaimAsString("email");
+        return electionService.electionObservations (id,request,actor );
+    }
+
 
 }

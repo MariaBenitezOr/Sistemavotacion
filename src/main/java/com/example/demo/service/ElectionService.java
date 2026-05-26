@@ -1,30 +1,17 @@
 package com.example.demo.service;
 
-import com.example.demo.dto.CreateElectionRequest;
-import com.example.demo.repository.CandidateRepository;
+import com.example.demo.dto.*;
+import com.example.demo.entity.*;
+import com.example.demo.repository.*;
+import jakarta.validation.Valid;
 import org.springframework.stereotype.Service;
-import com.example.demo.repository.ElectionRepository;
-import com.example.demo.entity.Election;
+
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
-import com.example.demo.dto.ElectionResponse;
-import com.example.demo.repository.PositionRepository;
-import com.example.demo.dto.CreatePositionRequest;
-import com.example.demo.entity.Position;
-import com.example.demo.dto.PositionResponse;
-import com.example.demo.repository.ElectionListRepository;
-import com.example.demo.dto.CreateElectionListRequest;
-import com.example.demo.entity.ElectionList;
-import com.example.demo.dto.ElectionListResponse;
-import com.example.demo.dto.CreateCandidateRequest;
-import com.example.demo.entity.Candidate;
-import com.example.demo.dto.CandidateResponse;
-import com.example.demo.repository.VoteRepository;
-import com.example.demo.dto.CreateVoteRequest;
-import com.example.demo.entity.Vote;
-import com.example.demo.dto.ElectionResultResponse;
-import com.example.demo.dto.ElectionStatsResponse;
+
 import com.example.demo.exception.NotFoundException;
+import org.springframework.web.bind.annotation.RequestBody;
 
 @Service
 public class ElectionService {
@@ -35,19 +22,23 @@ public class ElectionService {
     public final CandidateRepository candidateRepository;
     public final VoteRepository voteRepository;
     private final AuditService auditService;
+    private final ElectionObservationRepository electionObservationRepository;
+
 
     public ElectionService(ElectionRepository electionRepository,
                            PositionRepository positionRepository,
                            ElectionListRepository electionListRepository,
                            CandidateRepository candidateRepository,
                            VoteRepository voteRepository,
-                           AuditService auditService) {
+                           AuditService auditService,
+                           ElectionObservationRepository electionObservationRepository) {
         this.electionRepository = electionRepository;
         this.positionRepository = positionRepository;
         this.electionListRepository = electionListRepository;
         this.candidateRepository = candidateRepository;
         this.voteRepository = voteRepository;
         this.auditService = auditService;
+        this.electionObservationRepository = electionObservationRepository;
     }
     //fin
 
@@ -76,7 +67,8 @@ public class ElectionService {
     //Fin
 
     //CrearEleccion
-    public ElectionResponse createElection(CreateElectionRequest request) {
+    public ElectionResponse createElection( CreateElectionRequest request,
+                                            String actor) {
 
         Election election = new Election();
 
@@ -88,8 +80,9 @@ public class ElectionService {
         election.setStatus("DRAFT");
 
         Election savedElection = electionRepository.save(election);
+
         auditService.log(
-                "admin@test.com",
+                actor,
                 "ELECTION_CREATED",
                 "ELECTION",
                 savedElection.getId(),
@@ -414,16 +407,49 @@ public class ElectionService {
         return response;
     }
 
-
-
+    //implementar reporte final detallado
     public String getFinalReport(Long id){
         return "Reporte final elección ID: " + id;
     }
 
+    //implementar exportación real de auditoría
     public String exportElectionAudit(Long id){
         return "Auditoría elección ID: " + id;
     }
-    public String registerList(Long id){
-        return "Registrar lista en elección ID: "+ id;
+
+
+    //Prueba
+    public ObservationResponse electionObservations  (Long electionId,
+                                        CreateObservationRequest request,
+                                        String actor){
+        electionRepository.findById(electionId)
+                .orElseThrow(() -> new NotFoundException("Elección no encontrada"));
+
+        ElectionObservations electionObs = new ElectionObservations();
+
+        electionObs.setElection_id(electionId);
+        electionObs.setActor(actor);
+        electionObs.setComment(request.getComment());
+        electionObs.setCreated_at(LocalDateTime.now());
+
+        ElectionObservations savedObservation =
+                electionObservationRepository.save(electionObs);
+
+        auditService.log(
+                actor,
+                "OBSERVATION_CREATED",
+                "ELECTION_OBSERVATION",
+                electionObs.getId(),
+                "Se registró una nueva Observacion"
+        );
+        ObservationResponse response = new ObservationResponse();
+        response.setId(savedObservation.getId());
+        response.setElection_id(savedObservation.getElection_id());
+        response.setActor(savedObservation.getActor());
+        response.setComment(savedObservation.getComment());
+        response.setCreated_at(savedObservation.getCreated_at());
+        return response;
     }
+
+
 }

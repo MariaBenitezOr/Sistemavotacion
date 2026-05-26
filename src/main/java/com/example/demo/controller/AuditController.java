@@ -3,16 +3,15 @@ package com.example.demo.controller;
 import com.example.demo.dto.AuditExportResponse;
 import com.example.demo.dto.VerifySignatureRequest;
 import com.example.demo.service.HmacService;
+import jakarta.validation.Valid;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
-import com.example.demo.dto.AuditLogResponse;
 import com.example.demo.service.AuditService;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import java.util.List;
 
 
 @RestController
@@ -47,7 +46,7 @@ public class AuditController {
 
     @PreAuthorize("hasRole('AUDITOR')")
     @PostMapping("/verify")
-    public boolean verificarAuditoria(@RequestBody VerifySignatureRequest request){
+    public boolean verificarAuditoria(@Valid @RequestBody VerifySignatureRequest request){
 
         return hmacService.verifySignature(
                 request.getData(),
@@ -55,6 +54,7 @@ public class AuditController {
         );
     }
 
+    //SoloParaTest
     @PreAuthorize("hasRole('AUDITOR')")
     @GetMapping("/test-sign")
     public String testSign() {

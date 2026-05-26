@@ -2,6 +2,7 @@ package com.example.demo.controller;
 
 import com.example.demo.dto.RegisterRequest;
 import com.example.demo.service.AuthService;
+import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -15,24 +16,8 @@ public class AuthController {
     }
 
     @PostMapping("/register")
-    public String register(@RequestBody RegisterRequest request) {
+    public String register(@Valid @RequestBody RegisterRequest request) {
         return authService.register(request);
     }
 
-
-
-//    @PostMapping("/login")
-//    public String login() {
-//        return "Login de usuario";
-//    }
-//
-//    @PostMapping("/refresh")
-//    public String refresh() {
-//        return "Renovar access token";
-//    }
-//
-//    @PostMapping("/logout")
-//    public String logout() {
-//        return "Logout usuario";
-//    }
 }
