@@ -190,7 +190,6 @@ public class ElectionController {
         return electionService.exportElectionAudit(id);
     }
 
-
     //Prueba
     @PreAuthorize("hasRole('AUDITOR')")
     @PostMapping ("/{id}/observations")
@@ -200,6 +199,17 @@ public class ElectionController {
 
         String actor = jwt.getClaimAsString("email");
         return electionService.electionObservations (id,request,actor );
+    }
+
+    //Prueba2
+    @PreAuthorize("hasRole('AUDITOR')")
+    @PostMapping ("/{id}/incidents")
+    public IncidentResponse electionIncidents (@PathVariable Long id,
+                                               @Valid @RequestBody CreateIncidentRequest request ,
+                                               @AuthenticationPrincipal Jwt jwt){
+
+        String actor = jwt.getClaimAsString("email");
+        return electionService.electionIncidents(id ,request ,actor);
     }
 
 

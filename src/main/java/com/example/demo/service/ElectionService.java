@@ -23,6 +23,7 @@ public class ElectionService {
     public final VoteRepository voteRepository;
     private final AuditService auditService;
     private final ElectionObservationRepository electionObservationRepository;
+    private final ElectionIncidentRepository electionIncidentRepository;
 
 
     public ElectionService(ElectionRepository electionRepository,
@@ -31,7 +32,8 @@ public class ElectionService {
                            CandidateRepository candidateRepository,
                            VoteRepository voteRepository,
                            AuditService auditService,
-                           ElectionObservationRepository electionObservationRepository) {
+                           ElectionObservationRepository electionObservationRepository,
+                           ElectionIncidentRepository electionIncidentRepository) {
         this.electionRepository = electionRepository;
         this.positionRepository = positionRepository;
         this.electionListRepository = electionListRepository;
@@ -39,6 +41,7 @@ public class ElectionService {
         this.voteRepository = voteRepository;
         this.auditService = auditService;
         this.electionObservationRepository = electionObservationRepository;
+        this.electionIncidentRepository = electionIncidentRepository;
     }
     //fin
 
@@ -440,7 +443,7 @@ public class ElectionService {
                 "OBSERVATION_CREATED",
                 "ELECTION_OBSERVATION",
                 electionObs.getId(),
-                "Se registró una nueva Observacion"
+                "Se registro una nueva Observacion"
         );
         ObservationResponse response = new ObservationResponse();
         response.setId(savedObservation.getId());
@@ -449,6 +452,48 @@ public class ElectionService {
         response.setComment(savedObservation.getComment());
         response.setCreated_at(savedObservation.getCreated_at());
         return response;
+    }
+
+    //Prueba2
+    public IncidentResponse electionIncidents(Long electionId ,
+                                              CreateIncidentRequest request,
+                                              String actor){
+
+        electionRepository.findById(electionId)
+                .orElseThrow(() -> new NotFoundException("Eleccion no encontrada"));
+
+        ElectionIncidents electionInc = new  ElectionIncidents();
+
+        electionInc.setElection_id(electionId);
+        electionInc.setActor(actor);
+        electionInc.setTitle(request.getTitle());
+        electionInc.setDescription(request.getDescription());
+        electionInc.setSeverity(request.getSeverity());
+        electionInc.setCreated_at(LocalDateTime.now());
+
+        ElectionIncidents saveIncidents =  electionIncidentRepository.save(electionInc);
+
+        auditService.log(
+                actor,
+                "INCIDENT_CREATED",
+                "ELECTION_INCIDENTS",
+                saveIncidents.getId(),
+                "Se registro una Incidencia"
+        );
+
+        IncidentResponse response = new IncidentResponse();
+
+        response.setId(saveIncidents.getId());
+        response.setElection_id(saveIncidents.getElection_id());
+        response.setActor(saveIncidents.getActor());
+        response.setTitle(saveIncidents.getTitle());
+        response.setDescription(saveIncidents.getDescription());
+        response.setSeverity(saveIncidents.getSeverity());
+        response.setCreated_at(saveIncidents.getCreated_at());
+
+        return response;
+
+
     }
 
 
